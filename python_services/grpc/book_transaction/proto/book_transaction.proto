@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package book_transaction_service;
+
+import "google/protobuf/timestamp.proto";
+
+// The BookTransaction service definition.
+service BookTransactionService {
+  // A ListBookTransactions RPC that takes a TransactionRequest and returns TransactionResponse.
+  rpc ListBookTransactions(TransactionRequest) returns (TransactionResponse) {}
+}
+
+// response parameter of BookTransaction.
+message BookTransaction {
+  string book_name = 1;
+  bool is_book_available = 2;
+  string member_name = 3;
+  google.protobuf.Timestamp borrowed_time = 4;
+  google.protobuf.Timestamp returned_time = 5;
+}
+
+// The request message definition.
+message TransactionRequest {
+  google.protobuf.Timestamp transactions_from = 1;
+}
+
+// The response message definition, containing the returned data list.
+message TransactionResponse {
+ repeated BookTransaction transactions = 1; // 'repeated' indicates a list
+}

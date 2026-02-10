@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package book_service;
+
+import "google/protobuf/timestamp.proto";
+
+// The Book service definition.
+service BookService {
+  // A BookService RPC that takes a request and returns data.
+  rpc CreateBook(CreateBookRequest) returns (CreateBookResponse) {}
+
+   // A UpdateBook RPC that takes a request and returns data.
+  rpc UpdateBook(UpdateBookRequest) returns (UpdateBookResponse) {}
+}
+
+// request message of CreateBook rpc.
+message CreateBookRequest {
+  string name = 1;
+  string author = 2;
+  string member_name = 3;
+  google.protobuf.Timestamp borrowed_time = 4;
+  google.protobuf.Timestamp returned_time = 5;
+}
+
+// The response message definition, containing result of creation.
+message CreateBookResponse {
+ bool is_book_created = 1;
+}
+
+
+
+// request of UpdateBook with id of book.
+message UpdateBookRequest {
+  string id = 1;
+}
+
+// The response message definition, containing result of book updation.
+message UpdateBookResponse {
+ bool is_book_updated = 1;
+}

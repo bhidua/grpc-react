@@ -7,7 +7,7 @@ function UpdateMember() {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const onSubmit = async (data) => {
 
-    console.log(grpcMemberUpdate(data.name,data.author)); // 'data' contains the form inputs
+    console.log(grpcMemberUpdate(data.id, data.name, data.author)); // 'data' contains the form inputs
   };
 
   return (

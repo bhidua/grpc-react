@@ -44,6 +44,9 @@
 
         python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. book_transaction.proto
 
+### or with packaged files
+        python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=.. book/proto/book.proto
+
 
 ## start book server, client and request with client
         start python book_server.py
@@ -99,6 +102,14 @@
 
 ## start book server from python
             python book_server.py
+
+
+## install database connectino pool library
+
+        pip install psycopg2-binary
+
+## response type check
+        Object.getOwnPropertyNames(Object.getPrototypeOf(response))
 
 # Getting Started with Create React App
 

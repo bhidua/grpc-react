@@ -7,7 +7,7 @@ function UpdateBook() {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const onSubmit = async (data) => {
 
-    console.log(grpcBookUpdate(data.name,data.author)); // 'data' contains the form inputs
+    console.log(grpcBookUpdate(data.id, data.name, data.author)); // 'data' contains the form inputs
   };
 
   return (
@@ -39,7 +39,7 @@ function UpdateBook() {
         />
         {errors.author && <p style={{ color: 'red' }}>{errors.author.message}</p>}
       </div>
-      <button type="submit">Create Book</button>
+      <button type="submit">Update Book</button>
     </form>
   );
 

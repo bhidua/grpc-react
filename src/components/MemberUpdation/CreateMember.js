@@ -7,7 +7,7 @@ function CreateMember() {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const onSubmit = async (data) => {
 
-    console.log(grpcMemberCreate(data.name,data.author)); // 'data' contains the form inputs
+    console.log(grpcMemberCreate(data.name, data.phone)); // 'data' contains the form inputs
   };
 
   return (

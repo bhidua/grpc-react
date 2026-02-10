@@ -23,10 +23,9 @@ function CreateBook() {
       </div>
 
       <div className="form-row">
-        <label htmlFor="author"className="form-label">Author:</label>
+        <label htmlFor="author" className="form-label">Author:</label>
         <input className="form-input"
           id="author"
-          type="author"
           {...register('author', { required: 'Author is required' })}
         />
         {errors.author && <p style={{ color: 'red' }}>{errors.author.message}</p>}

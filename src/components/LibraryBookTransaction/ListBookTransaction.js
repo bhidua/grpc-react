@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import '../../App.css';
 import {
   useReactTable,
@@ -7,27 +7,59 @@ import {
   flexRender,
   createColumnHelper,
 } from '@tanstack/react-table';
+import { grpcListBookTransaction } from '../../services/grpcWeb/ReactClient'
 
 
-// ... define your data and columns ...
 const columnHelper = createColumnHelper();
-const defaultData = [
-  { book: "Book1", author: "author1", borrowed: new Date().toDateString(), returned: new Date().toDateString()}, 
-  { book: "Book2", author: "author1", borrowed: new Date().toDateString(), returned: new Date().toDateString()},
-  { book: "Book3", author: "author1", borrowed: new Date().toDateString(), returned: new Date().toDateString()},
-  { book: "Book4", author: "author1", borrowed: new Date().toDateString(), returned: new Date().toDateString()}, 
-  { book: "Book5", author: "author1", borrowed: new Date().toDateString(), returned: new Date().toDateString()},
-  { book: "Book6", author: "author1", borrowed: new Date().toDateString(), returned: new Date().toDateString()},];
+
 const columns = [
-  columnHelper.accessor('book', { header: 'Book' }),
-  columnHelper.accessor('author', { header: 'Author' }),
-  columnHelper.accessor('borrowed', { header: 'Borrowed' }),
-  columnHelper.accessor('returned', { header: 'Returned' }),
+  columnHelper.accessor('book_name', { header: 'Book Name' }),
+  columnHelper.accessor('is_book_available', { header: 'Is Book Available' }),
+  columnHelper.accessor('member_name', { header: 'Member Name' }),
+  columnHelper.accessor('borrowed_time', { header: 'Borrowed Time' }),
+  columnHelper.accessor('returned_time', { header: 'Returned Time' }),
 ];
 
-function ListBookTransaction() {
+function ListBookTransaction() {   
+  const [data,setData] = useState([]);
 
-  const [data] = useState(() => [...defaultData]);
+  useEffect(() => {
+    function grpcTimestampToDate(ts) {
+      if (!ts) return null;
+      const seconds = ts.getSeconds();
+      const nanos = ts.getNanos();
+      // Convert seconds + nanos to milliseconds
+      return new Date(seconds * 1000 + Math.floor(nanos / 1e6));
+    }
+    function grpcTimestampToString(ts) {
+      const date = grpcTimestampToDate(ts);
+      return date ? date.toLocaleString() : null;
+    }
+    async function fetchBookTransactions() {
+      try {
+        const response = await grpcListBookTransaction();
+        const data = response.getTransactionsList().map(( txn ) =>  
+          {    
+            return {      
+              book_name: txn.getBookName(),      
+              is_book_available: txn.getIsBookAvailable(),      
+              member_name: txn.getMemberName(),      
+              borrowed_time: grpcTimestampToString(txn.getBorrowedTime()),      
+              returned_time: grpcTimestampToString(txn.getReturnedTime())    
+            }  
+          });
+        setData(data);
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        
+      }
+    }
+
+    fetchBookTransactions();
+  }, []);
+
   const [pagination, setPagination] = useState({
     pageIndex: 0, // initial page index
     pageSize: 5, // default page size
@@ -43,7 +75,6 @@ function ListBookTransaction() {
       pagination,
     },
   });
-
   return (
     <div style={{
         display: 'flex',       // Enables flexbox layout
