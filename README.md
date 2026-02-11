@@ -29,6 +29,15 @@
 ## 7. List Book Transaction <p>
 ![Alt text](/screenshots/7.png?raw=true "List Book Transaction")
 
+## 8. List Book To Borrow
+![Alt text](/screenshots/8.png?raw=true "List Book Transaction")
+
+## 9. List Book To Return
+![Alt text](/screenshots/9.png?raw=true "List Book Transaction")
+
+## 10. List Book Transactions with both Borrow Return Actions
+![Alt text](/screenshots/10.png?raw=true "List Book Transaction")
+
 # <h2>Steps for Setup.<h2>
 
 ## Install python
