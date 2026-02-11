@@ -9,56 +9,85 @@ import {
 } from '@tanstack/react-table';
 import { grpcListBookTransaction } from '../../services/grpcWeb/ReactClient'
 
-
-const columnHelper = createColumnHelper();
-
-const columns = [
-  columnHelper.accessor('book_name', { header: 'Book Name' }),
-  columnHelper.accessor('is_book_available', { header: 'Is Book Available' }),
-  columnHelper.accessor('member_name', { header: 'Member Name' }),
-  columnHelper.accessor('borrowed_time', { header: 'Borrowed Time' }),
-  columnHelper.accessor('returned_time', { header: 'Returned Time' }),
-];
-
 function ListBookTransaction() {   
   const [data,setData] = useState([]);
-
+  const fetchBookTransactions = async () => {
+        try {
+          const response = await grpcListBookTransaction();
+          const data = response.getTransactionsList().map(( txn ) =>  
+            {    
+              return {      
+                book_name: txn.getBookName(),      
+                is_book_available: txn.getIsBookAvailable(),      
+                member_name: txn.getMemberName(),      
+                borrowed_time: grpcTimestampToString(txn.getBorrowedTime()),      
+                returned_time: grpcTimestampToString(txn.getReturnedTime())    
+              }  
+            });
+          setData(data);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          
+        }
+        function grpcTimestampToDate(ts) {
+          if (!ts) return null;
+          const seconds = ts.getSeconds();
+          const nanos = ts.getNanos();
+          // Convert seconds + nanos to milliseconds
+          return new Date(seconds * 1000 + Math.floor(nanos / 1e6));
+        }
+        function grpcTimestampToString(ts) {
+          const date = grpcTimestampToDate(ts);
+          return date ? date.toLocaleString() : null;
+        }
+  }
+  
+  
   useEffect(() => {
-    function grpcTimestampToDate(ts) {
-      if (!ts) return null;
-      const seconds = ts.getSeconds();
-      const nanos = ts.getNanos();
-      // Convert seconds + nanos to milliseconds
-      return new Date(seconds * 1000 + Math.floor(nanos / 1e6));
-    }
-    function grpcTimestampToString(ts) {
-      const date = grpcTimestampToDate(ts);
-      return date ? date.toLocaleString() : null;
-    }
-    async function fetchBookTransactions() {
-      try {
-        const response = await grpcListBookTransaction();
-        const data = response.getTransactionsList().map(( txn ) =>  
-          {    
-            return {      
-              book_name: txn.getBookName(),      
-              is_book_available: txn.getIsBookAvailable(),      
-              member_name: txn.getMemberName(),      
-              borrowed_time: grpcTimestampToString(txn.getBorrowedTime()),      
-              returned_time: grpcTimestampToString(txn.getReturnedTime())    
-            }  
-          });
-        setData(data);
-
-      } catch (err) {
-        console.error(err);
-      } finally {
-        
-      }
-    }
-
     fetchBookTransactions();
   }, []);
+
+  const handleBorrow = (row) => {
+    // client.approve(request, {}, (err, response) => {
+    //   if (err) {
+    //     console.error("gRPC error:", err);
+    //     return;
+    //   }
+      // console.log("Approve success:", response.getMessage());
+    fetchBookTransactions();
+    //});
+  };
+
+  const handleReturn = (row) => {
+    // client.reject(request, {}, (err, response) => {
+    //   if (err) {
+    //     console.error("gRPC error:", err);
+    //     return;
+    //   }
+      // console.log("Reject success:", response.getMessage());
+      fetchBookTransactions();
+    // });
+  };
+
+  const columnHelper = createColumnHelper();
+  const columns = [
+    columnHelper.accessor('book_name', { header: 'Book Name' }),
+    columnHelper.accessor('is_book_available', { header: 'Is Book Available' }),
+    columnHelper.accessor('member_name', { header: 'Member Name' }),
+    columnHelper.accessor('borrowed_time', { header: 'Borrowed Time' }),
+    columnHelper.accessor('returned_time', { header: 'Returned Time' }),
+    columnHelper.display({
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <>
+          <button type="submit" disabled={row.is_book_available !== "False"} onClick={() => handleBorrow(row)}>Borrow</button>
+          <button type="submit" disabled={row.is_book_available !== "True"} onClick={() => handleReturn(row)}>Return</button>
+        </>
+      )
+    }),
+  ];
 
   const [pagination, setPagination] = useState({
     pageIndex: 0, // initial page index
@@ -108,7 +137,10 @@ function ListBookTransaction() {
             <tr key={row.id}>
               {row.getVisibleCells().map(cell => (
                 <td key={cell.id}>
-                  {cell.getValue()}
+                  {flexRender(
+                    cell.column.columnDef.cell,
+                    cell.getContext()
+                  )}
                 </td>
               ))}
             </tr>

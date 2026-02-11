@@ -130,8 +130,96 @@ def return_book(book_id, member_id):
         if conn:
             conn.close()
 
-
 def list_book_borrow_transactions(page=1, page_size=10):
+    # ---- input validation ----
+    if page < 1:
+        raise ValueError("page must be >= 1")
+    if page_size < 1 or page_size > 100:
+        raise ValueError("page_size must be between 1 and 100")
+    offset = (page - 1) * page_size
+    conn = get_connection()
+    print(f"[list_book_borrow_transactions] connection acquired.")
+    try:
+        with conn.cursor() as cur:
+            # total count (for pagination metadata)
+            cur.execute("SELECT COUNT(1) FROM library_book_transactions")
+            total = cur.fetchone()[0]
+            print(f"[list_book_borrow_transactions] total.{page_size},   {offset}")
+            # paged records
+            cur.execute(
+                """
+                SELECT b.name book_name, b.is_available is_available, m.name member_name, lt.borrowed_time btime, lt.returned_time rtime
+                FROM library_book_transactions lt, book b, member m
+                WHERE lt.book_id = b.book_id AND lt.member_id = m.member_id AND b.is_available=True
+                ORDER BY lt.borrowed_time desc
+                LIMIT %s OFFSET %s
+                """,
+                (page_size, offset)
+            )
+            rows = cur.fetchall()
+            print(f"rows: {rows}");
+            return book_transaction_pb2.TransactionResponse(
+                transactions=[map_book_transaction_row(row) for row in rows]
+            )
+    except (DatabaseError, OperationalError) as db_err:
+        conn.rollback()
+        raise RuntimeError(f"Database error while fetching library transactions: {db_err}")
+    except Exception as db_exp:
+        print(f"exception:  {db_exp}")
+        conn.rollback()
+        raise
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+def list_book_return_transactions(page=1, page_size=10):
+    # ---- input validation ----
+    if page < 1:
+        raise ValueError("page must be >= 1")
+    if page_size < 1 or page_size > 100:
+        raise ValueError("page_size must be between 1 and 100")
+    offset = (page - 1) * page_size
+    conn = get_connection()
+    print(f"[list_book_borrow_transactions] connection acquired.")
+    try:
+        with conn.cursor() as cur:
+            # total count (for pagination metadata)
+            cur.execute("SELECT COUNT(1) FROM library_book_transactions")
+            total = cur.fetchone()[0]
+            print(f"[list_book_borrow_transactions] total.{page_size},   {offset}")
+            # paged records
+            cur.execute(
+                """
+                SELECT b.name book_name, b.is_available is_available, m.name member_name, lt.borrowed_time btime, lt.returned_time rtime
+                FROM library_book_transactions lt, book b, member m
+                WHERE lt.book_id = b.book_id AND lt.member_id = m.member_id AND b.is_available=False
+                ORDER BY lt.borrowed_time desc
+                LIMIT %s OFFSET %s
+                """,
+                (page_size, offset)
+            )
+            rows = cur.fetchall()
+            print(f"rows: {rows}");
+            return book_transaction_pb2.TransactionResponse(
+                transactions=[map_book_transaction_row(row) for row in rows]
+            )
+    except (DatabaseError, OperationalError) as db_err:
+        conn.rollback()
+        raise RuntimeError(f"Database error while fetching library transactions: {db_err}")
+    except Exception as db_exp:
+        print(f"exception:  {db_exp}")
+        conn.rollback()
+        raise
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+
+def list_book_all_transactions(page=1, page_size=10):
     # ---- input validation ----
     if page < 1:
         raise ValueError("page must be >= 1")
@@ -162,12 +250,6 @@ def list_book_borrow_transactions(page=1, page_size=10):
             return book_transaction_pb2.TransactionResponse(
                 transactions=[map_book_transaction_row(row) for row in rows]
             )
-            # return {
-            #     "page": page,
-            #     "page_size": page_size,
-            #     "total": total,
-            #     "data": rows
-            # }
     except (DatabaseError, OperationalError) as db_err:
         conn.rollback()
         raise RuntimeError(f"Database error while fetching library transactions: {db_err}")
